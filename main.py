@@ -2,9 +2,12 @@ import pygame
 from pygame import rect
 from pygame.constants import *
 import pygame.sprite
+import chess_game
+import chess
 
+board_squares=[]
 
-class Board:
+class Display_board:
     def __init__(self)->None:
         self.window=Window()
         
@@ -14,9 +17,8 @@ class Board:
         
         self.black=[0,0,0]
         self.white=[255,255,255]
+
     def make_bored (self):
-       
-        counter=0
         for i in range(64):
             column=i%8
             row=int(i//8)
@@ -31,6 +33,7 @@ class Board:
                 color=self.white
             self.square=pygame.Rect(x,y,(self.width/64),(self.height/64))
             pygame.draw.rect(self.screen,color,self.square)
+            board_squares.append(self.square)
             
             
 class Window:
@@ -54,9 +57,8 @@ class Window:
                         self.running=False
                 if event.type == pygame.QUIT:
                     self.running = False
+#chess_game.Board()
+#display_board=Display_board()
+#display_board.make_bored()
+#display_board.window.run_loop()
 
-
-
-board=Board()
-board.make_bored()
-board.window.run_loop()
