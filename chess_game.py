@@ -6,27 +6,21 @@ class Piece:
         self.color=color
 class Rook(Piece):
     def __init__(self,col,row,board,color) -> None:
-        self.pos=[row,col]
-        self.value=5
-        self.board=board
-        self.color=color
+        Piece.__init__(self,col,row,board,color)
         self.name='rook'
         self.letter='R'
-    def move(self,y_change,user,direction,piece,board,display_board):
+    def move(self,y_change,user,direction,piece,board):
         if y_change:
-            display_board[piece.pos[0]][piece.pos[1]]="."
-            display_board[piece.pos[0] - (direction * int(user[2]))][piece.pos[1]]='R'
             
             board[piece.pos[0]][piece.pos[1]]="."
             board[piece.pos[0] - (direction * int(user[2]))][piece.pos[1]]=piece
             piece.pos=[(piece.pos[0] - (direction * int(user[2]))),piece.pos[1]]
         else:
-            display_board[piece.pos[0]][piece.pos[1]]="."
-            display_board[piece.pos[0]][piece.pos[1] - (direction * int(user[2]))]='R'
+            
             board[piece.pos[0]][piece.pos[1]]="."
             board[piece.pos[0]][piece.pos[1] - (direction * int(user[2]))]=piece
             piece.pos=[piece.pos[0],(piece.pos[1] - (direction * int(user[2])))]
-        print(display_board)
+            board=self.board
         return board
 class Bishop(Piece):
     def __init__(self,col,row,board,color) -> None:
@@ -34,23 +28,18 @@ class Bishop(Piece):
         self.name='bishop'
         self.letter='B'
         
-    def move(self,y_negative_change,x_negative_change,user,piece,board,display_board) :
+    def move(self,y_negative_change,x_negative_change,user,piece,board) :
         if y_negative_change and x_negative_change:
             print('down left')
             board[piece.pos[0]][piece.pos[1]]='.'
             board[piece.pos[0]+int(user[3])][piece.pos[1]-int(user[3])]=piece
 
-            display_board[piece.pos[0]][piece.pos[1]]='.'
-            display_board[piece.pos[0]+int(user[3])][piece.pos[1]-int(user[3])]='B'
             
 
         elif y_negative_change and not x_negative_change:
             print('down right')
             board[piece.pos[0]][piece.pos[1]]='.'
             board[piece.pos[0]+int(user[3])][piece.pos[1]+int(user[3])]=piece
-
-            display_board[piece.pos[0]][piece.pos[1]]='.'
-            display_board[piece.pos[0]+int(user[3])][piece.pos[1]+int(user[3])]='B'
             y_negative_change=False
             x_negative_change=False
             
@@ -58,9 +47,6 @@ class Bishop(Piece):
             print('up left')
             board[piece.pos[0]][piece.pos[1]]='.'
             board[piece.pos[0]-int(user[3])][piece.pos[1]-int(user[3])]=piece
-
-            display_board[piece.pos[0]][piece.pos[1]]='.'
-            display_board[piece.pos[0]-int(user[3])][piece.pos[1]-int(user[3])]='B'
             y_negative_change=False
             x_negative_change=False
 
@@ -69,9 +55,8 @@ class Bishop(Piece):
             board[piece.pos[0]][piece.pos[1]]='.'
             board[piece.pos[0]-int(user[3])][piece.pos[1]+int(user[3])]=piece
 
-            display_board[piece.pos[0]][piece.pos[1]]='.'
-            display_board[piece.pos[0]-int(user[3])][piece.pos[1]+int(user[3])]='B'
-        return [board,display_board]
+            
+        return board
 class King(Piece): 
     def __init__(self,col,row,board,color) -> None:
         self.pos=[row,col]
@@ -80,7 +65,7 @@ class King(Piece):
 
 class Board:
     def __init__ (self):
-        self.display_board = [ ["."] * 8 for i in range(8)]
+       
         self.board=[ ["."] * 8 for i in range(8)]
         self.x_change=False
         self.y_change=False
@@ -89,13 +74,11 @@ class Board:
         self.test=False
         self.rw=Rook(4,4,self.board,'white')
         self.wb=Bishop(1,1,self.board,'white')
-        self.display_board[self.wb.pos[0]][self.wb.pos[1]]='B'
-        self.display_board[self.rw.pos[0]][self.rw.pos[1]]='R'
         self.board[self.rw.pos[0]][self.rw.pos[1]]=self.rw
         self.board[self.wb.pos[0]][self.wb.pos[1]]=self.wb
     def get_fov(self,piece)->tuple:
         pass
-
+        #HEY DO SOMETHING WITH ME!!
 
     def game_loop(self):
         running = True
@@ -138,9 +121,8 @@ class Board:
                     self.direction=-1
            
             
-            new_stage=piece.move(self.y_change,user,self.direction,piece,self.board,self.display_board)[0]
-            self.board=new_stage[0]
-            self.display_board=new_stage[1]
+            self.board=piece.move(self.y_change,user,self.direction,piece,self.board)
+            
             
             if piece.pos[0]<0:
                 print('error')
@@ -159,7 +141,7 @@ class Board:
                 x_negative_change=True
             print(y_negative_change)
             print(x_negative_change)
-
+            self.board=self.wb.move(y_negative_change,x_negative_change,user,piece,self.board)
             
 
             if self.wb.pos[0]<0:
@@ -177,18 +159,20 @@ class Board:
                 if isinstance(square,Piece):
                     print ('object')
       
-        print("   A B C D E F G H")
+        print("  A B C D E F G H")
         for rn,row in enumerate(self.board):
             print(rn+1,end='')
+            
             for square in row:
-                
+                print('|',end='')
                 if isinstance(square,Piece):
                     
                     print (square.letter,end='')
                     
                 else:
+                    
                     print(square,end='')
-                print('|',end='')
+            
             print('')
     def check_for_take(self):
         pass

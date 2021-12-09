@@ -2,8 +2,7 @@ import pygame
 from pygame import rect
 from pygame.constants import *
 import pygame.sprite
-import chess_game
-import chess
+
 
 board_squares=[]
 
