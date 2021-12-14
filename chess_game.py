@@ -1,15 +1,33 @@
+position_lookup={}
+letter_list=['a','b','c','d','e','f','g','h']
+row_count=1
+                                                
+for row in range(8):
+    for col in range(8):
+        position_lookup[f'{letter_list[col]}{row+1}']=[row,col]
+
 
 class Piece:
     def __init__(self,row,col,board,color) -> None:
         self.pos=[row,col]
         self.board=board
         self.color=color
+        self.possible_moves=[]
 class Rook(Piece):
     def __init__(self,col,row,board,color) -> None:
         Piece.__init__(self,col,row,board,color)
         self.name='rook'
         self.letter='R'
-    def move(self,y_change,user,direction,piece,board):
+
+    def move(self,board,piece,pos_input):
+        self.last_move=board[piece.pos[0]][piece.pos[1]]
+        board[piece.pos[0]][piece.pos[1]]='.'
+        piece.pos=position_lookup[pos_input] 
+        board[piece.pos[0]][piece.pos[1]]=piece
+        return board
+
+
+    def get_possible_moves(self,y_change,user,direction,piece,board):
         if y_change:
             
             board[piece.pos[0]][piece.pos[1]]="."
@@ -27,8 +45,13 @@ class Bishop(Piece):
         Piece.__init__(self,col,row,board,color)
         self.name='bishop'
         self.letter='B'
-        
-    def move(self,y_negative_change,x_negative_change,user,piece,board) :
+    def move(self,board,piece,pos_input):
+        self.last_move=board[piece.pos[0]][piece.pos[1]]
+        board[piece.pos[0]][piece.pos[1]]='.'
+        piece.pos=position_lookup[pos_input] 
+        board[piece.pos[0]][piece.pos[1]]=piece
+        return board
+    def get_possibel_moves(self,y_negative_change,x_negative_change,user,piece,board) :
         if y_negative_change and x_negative_change:
             print('down left')
             board[piece.pos[0]][piece.pos[1]]='.'
@@ -54,9 +77,12 @@ class Bishop(Piece):
             print('up right')
             board[piece.pos[0]][piece.pos[1]]='.'
             board[piece.pos[0]-int(user[3])][piece.pos[1]+int(user[3])]=piece
-
+            
             
         return board
+class queen(Piece):
+    def __init__(self):
+        pass
 class King(Piece): 
     def __init__(self,col,row,board,color) -> None:
         self.pos=[row,col]
@@ -76,9 +102,6 @@ class Board:
         self.wb=Bishop(1,1,self.board,'white')
         self.board[self.rw.pos[0]][self.rw.pos[1]]=self.rw
         self.board[self.wb.pos[0]][self.wb.pos[1]]=self.wb
-    def get_fov(self,piece)->tuple:
-        pass
-        #HEY DO SOMETHING WITH ME!!
 
     def game_loop(self):
         running = True
@@ -101,27 +124,16 @@ class Board:
         
         user=user.split(' ')
         piece=user[0]
+        piece_start_pos= user[1]
+        pos_input=user[3]
         pos=self.rw.pos
         print(user)
         if piece=='rook':
             print('rook')
             piece=self.rw
-            if user[1]=='up'or user[1]=='down':
-                self.y_change=True
-                if user[1]=='backwards':
-                    self.direction=-1
-                else:
-                    self.direction=1
-            if user[1]=='right'or user[1]=='left':
-                self.x_change=True
-                self.y_change=False
-                if user[1]=='left':
-                    self.direction=1
-                else:
-                    self.direction=-1
            
             
-            self.board=piece.move(self.y_change,user,self.direction,piece,self.board)
+            self.board=piece.move(self.board,piece,pos_input)
             
             
             if piece.pos[0]<0:
@@ -133,15 +145,8 @@ class Board:
                 self.display_update()
         if piece=='bishop':
             piece=self.wb
-            y_negative_change=False
-            x_negative_change=False
-            if user[1]=='down':
-                y_negative_change=True
-            if user[2]=='left':
-                x_negative_change=True
-            print(y_negative_change)
-            print(x_negative_change)
-            self.board=self.wb.move(y_negative_change,x_negative_change,user,piece,self.board)
+            
+            self.board=self.wb.move(self.board,piece,pos_input)
             
 
             if self.wb.pos[0]<0:
