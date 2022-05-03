@@ -1,3 +1,5 @@
+
+
 position_lookup={}
 letter_list=['a','b','c','d','e','f','g','h']
 row_count=1
@@ -27,7 +29,7 @@ class Pawn(Piece):
 
 
     def move(self,board,pos_input):
-        self.last_move=board[self.pos[0]][self.pos[1]]
+        self.last_move=tuple(self.pos)
         self.get_possible_moves(board)
         if tuple(position_lookup[pos_input]) not in self.possible_moves:
             raise Invalid_move()
@@ -236,14 +238,21 @@ class Knight(Piece):
         self.pos=self.start_pos
         self.possible_moves.append((self.pos[0]-2,self.pos[1]-1))
         self.pos=self.start_pos
-        self.possible_moves.append((self.pos[0]-1,self.pos[1]+1))
+        self.possible_moves.append((self.pos[0]-1,self.pos[1]+2))
         self.pos=self.start_pos
-        self.possible_moves.append((self.pos[0]-1,self.pos[1]+1))
-        for coord in self.possible_moves:
+        self.possible_moves.append((self.pos[0]-1,self.pos[1]-2))
+
+        for coord in self.possible_moves[:]:
             if isinstance(coord,Piece):
                     if board[coord[0]][coord[1]].color==self.color:
                         self.possible_moves.remove(coord)
                         self.selfs_covered.append(coord)
+
+            elif coord[0]>7 or coord[0]<0:
+                self.possible_moves.remove(coord)
+
+            elif coord[1]>7 or coord[1]<0:
+                self.possible_moves.remove(coord)
         return board
     def make_move(self,board,pos_input):
         try:
@@ -475,6 +484,7 @@ class King(Piece):
         board[self.pos[0]][self.pos[1]]='.'
         self.pos=position_lookup[pos_input] 
         board[self.pos[0]][self.pos[1]]=self
+    
 class Board:
     def __init__ (self):
        
@@ -484,14 +494,90 @@ class Board:
         self.y_change=False
         self.direction=0
         self.test=False
-        self.wq= Queen (7,6,self.board,'white')
-        self.rw=Rook(7,0,self.board,'white')
-        self.wb=Bishop(1,1,self.board,'black')
-        self.wp=Pawn(6,6,self.board,'white')
-        self.board[self.wq.pos[0]][self.wq.pos[1]]=self.wq
-        self.board[self.rw.pos[0]][self.rw.pos[1]]=self.rw
-        self.board[self.wb.pos[0]][self.wb.pos[1]]=self.wb
-        self.board[self.wp.pos[0]][self.wp.pos[1]]=self.wp
+    turn_dict={
+        'w':'white',
+        'b':'black'}
+    black_pieces={
+        'r':Rook,
+        'b':Bishop,
+        'n':Knight,
+        'k':King,
+        'q':Queen,
+        'p':Pawn
+    }
+    white_pieces={
+        'R':Rook,
+        'B':Bishop,
+        'N':Knight,
+        'K':King,
+        'Q':Queen,
+        'P':Pawn
+    }
+    def setup(self,fen):
+        info=fen.split(' ')
+        board_info=info[0]
+        turn_info=info[1]
+        self.turn=self.turn_dict[turn_info]
+        ranks=board_info.split('/')
+        if len(ranks)!= 8:
+            raise ValueError('invalid fen')
+        for rn,rank in enumerate(ranks):
+            file=0
+            for letter in rank:
+                if letter in self.black_pieces:
+                    piece=self.black_pieces[letter](rn,file,self.board,'black')
+                    file += 1
+                    self.board[piece.pos[0]][piece.pos[1]]=piece
+                    #self.display_update()
+                elif letter in self.white_pieces:
+                    
+                    piece=self.white_pieces[letter](rn,file,self.board,'white')
+                    self.board[piece.pos[0]][piece.pos[1]]=piece
+                    #self.display_update()
+                    file += 1
+                else:
+                    file += 1
+    
+    def get_fen(self):
+        row_lst=[]
+        fen_lst=[]
+        counter=0
+        counter_2=0
+        
+        for row in self.board:
+            if len(row_lst)>= 8:
+                   fen_lst.append(''.join(row_lst))
+                   row_lst=[]
+                
+            if counter<8:
+                if counter>0:
+                    row_lst.append(str(counter))
+            if counter==8:
+
+                fen_lst.append(str(counter))
+            counter=0
+            fen_lst.append(''.join(row_lst))
+            row_lst=[]
+            for square in row:
+                
+                
+                if isinstance(square,Piece):
+                    if counter>0 and counter<8:
+                        row_lst.append(str(counter))
+                        counter=0
+                    row_lst.append(square.letter)
+
+                else: 
+                      counter+=1 
+        fen_lst.append(''.join(row_lst))
+        row_lst=[]
+        for i in fen_lst[:]:
+            if i=='':
+                fen_lst.remove(i)  
+                                  
+        fen='/'.join(fen_lst)
+        return fen
+
 
     def game_loop(self):
         running = True
@@ -590,13 +676,33 @@ def test_king():
     #print(board.wk.get_possible_moves(board.wk,board.board))
     board.display_update()
     
+def test_knight():
+    board=Board()
+    board.wn=Knight(7,7,board,'white')
+    board.board[board.wn.pos[0]][board.wn.pos[1]]=board.wn
 
+    board.display_update()
+    board.wn.get_possible_moves(board)
+    print(board.wn.possible_moves)
+def test_board_setup():
+    board=Board()
+    board.setup('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq')
+    board.display_update()
+    print(board.get_fen())
+
+def test_get_fen():
+    board=Board()
+    board.setup('rnbqkbnr/pppppppp/8/8/1n6/8/PPPPPPPP/RNBQKBNR')
+    print(board.get_fen())
 #this is wher I will run all of my tests
-test_possible_queen_moves()
+#test_possible_queen_moves()
 #test_text_ui()
 #test_king()
-
+#test_knight()
+#test_board_setup()
+#test_fen()
 #test_get_moves()
-#bored=Board()
-#bored.display_update()
-#bored.game_loop()
+bored=Board()
+bored.setup('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq')
+bored.display_update()
+bored.game_loop()
